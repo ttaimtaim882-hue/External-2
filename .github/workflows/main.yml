@@ -1,47 +1,38 @@
-name: Build LUMINAExternal IPA
+name: Build iOS IPA
 
 on:
-workflow_dispatch:
-push:
-branches: [main]
-paths:
-- "**"
-- ".github/workflows/build-ipa.yml"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-build-ipa:
-runs-on: macos-15
+  build:
+    runs-on: macos-15
 
-steps:
-  - name: Checkout project
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  - name: Build iOS app
-    run: |
-      set -euo pipefail
-      xcodebuild \
-        -project "LUMINA_EXTERNAL_Reconstruction/LUMINAExternal.xcodeproj" \
-        -scheme "LUMINAExternal" \
-        -configuration Release \
-        -sdk iphoneos \
-        -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-        CODE_SIGNING_ALLOWED=NO \
-        build
+      - name: Build IPA
+        run: |
+          xcodebuild \
+            -project "LUMINA_EXTERNAL_Reconstruction/LUMINAExternal.xcodeproj" \
+            -scheme "LUMINAExternal" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
 
-  - name: Package unsigned IPA
-    run: |
-      set -euo pipefail
-      APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/LUMINAExternal.app"
-      test -d "$APP_PATH"
-      mkdir -p "$RUNNER_TEMP/ipa/Payload"
-      cp -R "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/"
-      cd "$RUNNER_TEMP/ipa"
-      /usr/bin/zip -qry "$GITHUB_WORKSPACE/LUMINAExternal-unsigned.ipa" Payload
+      - name: Create IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/LUMINAExternal.app Payload/
+          zip -r LUMINAExternal.ipa Payload
 
-  - name: Upload IPA artifact
-    uses: actions/upload-artifact@v4
-    with:
-      name: LUMINAExternal-IPA
-      path: LUMINAExternal-unsigned.ipa
-      if-no-files-found: error
-      retention-days: 7
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUMINAExternal-IPA
+          path: LUMINAExternal.ipa
