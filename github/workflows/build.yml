@@ -1,0 +1,21 @@
+name: Objective-C Xcode
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build
+      run: xcodebuild clean build -project YOUR_PROJECT.xcodeproj -scheme YOUR_SCHEME -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' CODE_SIGNING_ALLOWED=NO
+
+    - name: Run Tests
+      run: xcodebuild test -project YOUR_PROJECT.xcodeproj -scheme YOUR_SCHEME -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' CODE_SIGNING_ALLOWED=NO
